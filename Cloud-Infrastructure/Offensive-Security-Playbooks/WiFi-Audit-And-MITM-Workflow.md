@@ -1,19 +1,3 @@
-Entiendo perfectamente, Sebastián. Ya vi el error.
-
-El problema es que cuando copiaste antes, te llevaste las etiquetas que decían "Bash" o "Javascript" y GitHub las puso como texto normal en lugar de convertirlas en cajas de código. Por eso se ve todo roto.
-
-Aquí tienes el archivo exactamente como el del NAS. Sin etiquetas raras, sin nombres de lenguajes. Limpio.
-
-Instrucciones:
-
-Borra todo lo que tienes en el archivo de GitHub.
-
-Copia el contenido de la caja de abajo (dale al botoncito de copiar en la esquina derecha de la caja negra).
-
-Pégalo en GitHub.
-
-Markdown
-
 # Playbook: Auditoría Wireless (Evil Twin) & Ataque MITM
 
 ## 📋 Resumen Ejecutivo

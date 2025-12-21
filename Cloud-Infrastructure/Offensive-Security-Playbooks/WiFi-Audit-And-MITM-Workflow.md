@@ -9,8 +9,8 @@ Este documento detalla la metodología técnica para realizar una auditoría de 
 **Hardware:** Adaptador WiFi USB Alfa/TP-Link (Chipset Realtek).
 **Objetivo:** Habilitar el modo monitor e inyección de paquetes.
 
-### 1.1 Verificación y Drivers (Chipset RTL8188EUS)
-Muchos adaptadores modernos requieren drivers específicos para permitir la inyección de paquetes.
+### 1.1 Verificación y Controladores (Chipset RTL8188EUS)
+Muchos adaptadores modernos requieren controladores específicos para permitir la inyección de paquetes.
 
 ```bash
 # Verificar detección del USB
@@ -133,3 +133,4 @@ Bucle Infinito de Redirección: El script JS se inyectaba en la propia página d
 
 Solución: Configurar set http.proxy.ignore [IP_ATACANTE].
 
+⚠️ Descargo de Responsabilidad: Este material ha sido documentado exclusivamente con fines educativos y ejecutado en un entorno de laboratorio controlado con dispositivos propios. El acceso no autorizado a redes informáticas es ilegal.

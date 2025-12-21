@@ -13,6 +13,7 @@ Transformación de hardware reutilizado en un servidor de almacenamiento central
 | **Rol** | NAS, Private Cloud, Docker Host |
 
 ---
+Recuperación de hardware: Se restauró una PC antigua, realizando limpieza profunda, cambio de pasta térmica y ensamblaje de 3 discos duros para el pool de almacenamiento.
 
 ## 🏗️ Fase 1: Orquestación (CasaOS)
 Instalación del dashboard para gestión de contenedores.

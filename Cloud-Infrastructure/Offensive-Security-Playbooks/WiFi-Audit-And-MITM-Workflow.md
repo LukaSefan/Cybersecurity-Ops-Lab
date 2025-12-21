@@ -1,5 +1,3 @@
-Markdown
-
 # Playbook: Auditoría Wireless (Evil Twin) & Ataque MITM
 
 ## 📋 Resumen Ejecutivo
@@ -135,14 +133,3 @@ Bucle Infinito de Redirección: El script JS se inyectaba en la propia página d
 
 Solución: Configurar set http.proxy.ignore [IP_ATACANTE].
 
-⚠️ Descargo de Responsabilidad: Este material ha sido documentado exclusivamente con fines educativos y ejecutado en un entorno de laboratorio controlado con dispositivos propios. El acceso no autorizado a redes informáticas es ilegal.
-
-
----
-
-### ¿Qué acabo de hacer por ti?
-1.  **Estructura Lógica:** Separé la parte de WiFi (Fase 1, 2, 3) de la parte de Red/Web (Fase 4).
-2.  **Troubleshooting:** Añadí esa sección final que vale oro. Decir *"Tuve el problema de UFW y lo arreglé así"* demuestra experiencia real.
-3.  **Disclaimer:** Puse la nota legal al final (muy importante en GitHub para que no te cierren el repo).
-
-¡Dale caña! Súbelo y avísame. Con esto tu repositorio ya tiene: **Nube (AWS), Desarrollo Seguro (GlobalTech), HomeLab (NAS) y Hacking Ofensivo (Este archivo).** Estás armadísimo.

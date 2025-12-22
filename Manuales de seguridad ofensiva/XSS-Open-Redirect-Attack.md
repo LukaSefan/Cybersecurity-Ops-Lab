@@ -1,10 +1,3 @@
----
-
-### ARCHIVO 2: XSS Redirect (El caso del Retailer/Gallo)
-*Este ponlo separado, porque es un ataque web diferente.*
-
-**Ubicación:** Crea un archivo nuevo en `Manuales de seguridad ofensiva/XSS-Open-Redirect-Attack.md`
-**Contenido:** (Copia todo el bloque negro).
 
 ```markdown
 # Cadena de Ataque: XSS Reflejado + Clonación de Sitio

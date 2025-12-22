@@ -1,4 +1,44 @@
 # 🛡️ Cybersecurity Operations Lab
+> **Technical Portfolio:** Cloud Infrastructure, Malware Research, Ethical Hacking & Automation.
+
+Welcome to my personal Security Operations (SecOps) lab. This repository centralizes technical documentation, Proof of Concepts (PoC), and infrastructure deployments aimed at refining **Red Teaming** and **Secure Architecture** skills.
+
+---
+
+## 📂 Project Modules
+
+### 1. ⚔️ Offensive Security (Red Team & Pentesting)
+*Location: `/Hacking-Module`*
+Documentation of TTPs (Tactics, Techniques, and Procedures) for security audits.
+* **Defense Evasion:** **HTML Smuggling** technique to bypass email filters and sandboxes.
+* **Malware Development:** Research on **C++ loaders with RC4 encryption** to evade static signatures.
+* **Wireless Audit:** Methodology for WPA2 handshake capture and **Evil Twin** deployment with captive portal.
+* **Web Hacking:** Kill Chain using **Reflected XSS + Open Redirect** in real-world environments.
+
+### 2. ☁️ Cloud Infrastructure & Hardening
+*Location: `/Cloud-Infrastructure` & `/Infrastructure-HomeLab`*
+Deployment and securing of cloud and on-premise servers.
+* **AWS Cloud:** Deployment of EC2 instances for pentesting (Kali Linux) with Security Groups and SSH key management.
+* **HomeLab Server:** Construction of a secure NAS server using **Ubuntu Server**, storage management (MergerFS), and remote access via **Mesh VPN (Tailscale)**.
+
+### 3. 🤖 AI Security Research
+*Location: `/AI-Security-Lab`*
+Exploration of Generative AI applied to cybersecurity.
+* **Local LLMs:** Implementation of "Uncensored" models (Dolphin/Llama3) locally (Air-gapped) for adversary simulation and offensive script generation without telemetry.
+
+### 4. 🐍 DevSecOps & Automation
+*Location: `/Python-Automation` & `/DevSecOps-Projects`*
+Development of custom tools and secure software architectures.
+* **Scripting:** Automation tools in **Python** (URL Shorteners, Scrapers).
+* **Secure Architecture:** Design documentation for E-Commerce applications (MVC, .NET, Backend Security).
+
+---
+*(Versión en Español más abajo / Spanish version below)*
+<br>
+<br>
+
+
+# 🛡️ Cybersecurity Operations Lab
 
 > **Portafolio Técnico:** Infraestructura Cloud, Investigación de Malware, Hacking Ético y Automatización.
 

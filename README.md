@@ -33,7 +33,7 @@ Development of custom tools and secure software architectures.
 * **Secure Architecture:** Design documentation for E-Commerce applications (MVC, .NET, Backend Security).
 
 ---
-*(Versión en Español más abajo / Spanish version below)*
+*(Spanish version below)*
 <br>
 <br>
 

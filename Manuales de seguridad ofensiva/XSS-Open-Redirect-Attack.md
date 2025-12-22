@@ -1,5 +1,3 @@
-
-```markdown
 # Cadena de Ataque: XSS Reflejado + Clonación de Sitio
 
 ## 🎯 Objetivo de la Auditoría

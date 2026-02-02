@@ -1,45 +1,97 @@
-# Cadena de Ataque: XSS Reflejado + Clonación de Sitio
+# Título del Escenario: Simulación de Kill Chain Completo: XSS Reflejado + Ingeniería Social Avanzada
 
-## 🎯 Objetivo de la Auditoría
-Demostrar cómo un atacante puede aprovechar vulnerabilidades en un sitio web legítimo (Cross-Site Scripting o Open Redirect) para redirigir tráfico a un sitio de phishing idéntico.
 
-**Target:** Plataforma de E-Commerce Minorista (Anonimizado: "Retailer-X").
+
+## 🎯 Objetivo de la Prueba
+
+Demostrar el impacto crítico de una vulnerabilidad de **Cross-Site Scripting (XSS)** no mitigada y cómo puede ser utilizada para encadenar ataques de suplantación de identidad (Phishing) con alta credibilidad.
+
+
+
+* **Target:** Plataforma de E-Commerce Minorista (Anonimizado: "Retailer-X").
+
+
 
 ---
 
-## ⚔️ Flujo del Ataque
 
-### 1. Reconocimiento de Vulnerabilidad
-Se detectó que el buscador interno del sitio web de "Retailer-X" era vulnerable a **Reflected XSS**. El sitio no sanitizaba correctamente los parámetros de entrada en la URL.
 
-* **URL Vulnerable:** `https://retailer-x.com/search?q=<script>...`
+## ⛓️ Flujo Técnico de la Auditoría (Kill Chain)
 
-### 2. Armado del Enlace Malicioso (The Hook)
-En lugar de enviar un link extraño (`mitienda-fake.com`), se envía un link que **empieza con el dominio legítimo** de la víctima. Esto engaña a los usuarios y a los filtros de seguridad básicos.
 
-**Payload Inyectado:**
-```javascript
-<script>window.location="[https://retailer-x-ofertas.online/producto-iphone15.html](https://retailer-x-ofertas.online/producto-iphone15.html)"</script>
-URL Final (Codificada): La víctima ve retailer-x.com al inicio, lo que genera confianza inmediata. https://retailer-x.com/search?q=%3Cscript%3Ewindow.location%3D%22https%3A%2F%2Fretailer-x-ofertas.online%2F...
 
-3. Infraestructura de Phishing (Clonación)
-Dominio: Se registró un dominio Typosquatting (.online) muy similar al original.
+### 1. Reconocimiento (Discovery)
 
-Clonación: Se utilizó HTTrack o clonación manual de HTML/CSS para replicar exactamente la página de un producto de alto valor.
+Se identificó que el motor de búsqueda interno del sitio legítimo (`/catalogsearch/result`) no implementaba sanitización de entrada (*Input Sanitization*) en el parámetro `q`. Esto permitió la inyección de código JavaScript arbitrario (**Reflected XSS**).
 
-Flujo de Compra Falso:
 
-producto.html (Idéntico al original).
 
-carrito.html (Simulación de compra).
+### 2. Armado del Vector (Weaponization)
 
-pago.html (Formulario malicioso que apunta al VPS del atacante).
+Se construyó una "URL Trampa" utilizando el dominio legítimo de la víctima para evadir filtros de concienciación de seguridad.
 
-4. Ejecución
-La víctima hace clic en el enlace que parece legítimo (retailer-x.com).
 
-El sitio legítimo ejecuta el XSS y redirige automáticamente al sitio clonado.
 
-La víctima "compra" el producto e introduce sus datos bancarios.
+* **Técnica:** El enlace comienza con el dominio oficial (`retailer-x.com`), generando confianza inmediata en el usuario.
 
-Los datos viajan al VPS (post.php) y se guardan en texto plano
+* **Payload:** Se inyectó un script de redirección (`window.location`) ofuscado que envía al usuario a un entorno controlado inmediatamente después de cargar la página legítima.
+
+
+
+### 3. Infraestructura de Simulación (Infrastructure)
+
+* **Dominio:** Se configuró un dominio mediante *Typosquatting* (similar al original) para mantener la persistencia visual.
+
+* **Clonación:** Se replicó la interfaz gráfica del sitio (Login/Checkout) utilizando herramientas de clonación web para un escenario de "Pixel Perfect".
+
+* **Backend:** Se desplegó un servidor VPS (Nginx + PHP) configurado únicamente para registrar eventos de ingreso de datos (Logs de Auditoría) sin procesar transacciones reales.
+
+
+
+### 4. Ejecución y Explotación (Delivery & Actions)
+
+1.  El usuario accede al enlace que parece legítimo.
+
+2.  El sitio vulnerable ejecuta el XSS y redirige al usuario al entorno clonado de forma transparente.
+
+3.  El usuario interactúa con el formulario simulado.
+
+4.  El sistema captura los metadatos de la interacción en el VPS para confirmar el compromiso de credenciales.
+
+
+
+```mermaid
+
+sequenceDiagram
+
+    participant User as Usuario Víctima
+
+    participant Legitimate as Sitio Legítimo (Vulnerable)
+
+    participant Clone as Sitio Clonado (VPS)
+
+
+
+    Note over User, Legitimate: 1. Usuario confía en el enlace
+
+    User->>Legitimate: Clic en enlace malicioso (XSS Payload)
+
+    
+
+    Note over Legitimate: 2. Ejecución XSS
+
+    Legitimate->>User: Ejecuta Script de Redirección
+
+    
+
+    Note over User, Clone: 3. Redirección Transparente
+
+    User->>Clone: Carga Sitio Clonado (Typosquatting)
+
+    User->>Clone: Ingresa Credenciales (Simulación)
+
+    
+
+    Note over Clone: 4. Registro de Auditoría
+
+    Clone->>Clone: Log de Evento (Sin guardar pass real)

@@ -1,4 +1,4 @@
-# Título del Escenario: Simulación de Kill Chain Completo: XSS Reflejado + Ingeniería Social Avanzada
+# Simulación de Kill Chain Completo: XSS Reflejado + Ingeniería Social Avanzada
 
 
 

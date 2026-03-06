@@ -1,22 +1,33 @@
-## Herramientas de Automatización en Python
+import qrcode
+import os
+import sys
 
-Este directorio contiene scripts desarrollados en Python para automatizar tareas operativas y de evasión en simulaciones de seguridad.
+# CONFIGURACIÓN 
+URL_A_CODIFICAR = 'sebastianaguilarcv.info'
+NOMBRE_ARCHIVO = 'cv_sebastian.png'
+CARPETA_DESTINO = 'QRs_Generados'
 
-### 1. DOM Smuggler v2 (`dom_smuggler_v2.py`)
-Herramienta diseñada para simulaciones de *Red Teaming* y auditorías de seguridad (Phishing/Ingeniería Social). Utiliza técnicas de **HTML Smuggling** para evadir sistemas de detección de intrusos (IDS) y sandboxes de correo.
 
-* **Funcionamiento:** Toma una plantilla HTML de entrada, fuerza los métodos POST para la captura de credenciales y ofusca el código fuente dividiéndolo en fragmentos codificados en Base64.
-* **Evasión (Anti-Sandbox):** El payload decodifica y reconstruye el DOM del navegador (renderizando la página real) únicamente tras detectar interacción humana (`mousemove` o `touchstart`), evadiendo así los análisis automatizados que no interactúan con la página.
-* **Uso:** ```bash
-    python dom_smuggler_v2.py <plantilla_original.html> <payload_ofuscado.html>
-    ```
+def generar_qr():
+    try:
+        # 1. Crear la carpeta si no existe
+        if not os.path.exists(CARPETA_DESTINO):
+            os.makedirs(CARPETA_DESTINO)
+            print(f"[+] Carpeta '{CARPETA_DESTINO}' creada.")
 
-### 2. Generador de QR para CV (`qr_cv_generator.py`)
-Script utilitario para generar de forma automatizada códigos QR apuntando a recursos web (por defecto, el portafolio personal).
+        # 2. Generar el QR
+        print(f"[*] Generando QR para: {URL_A_CODIFICAR}...")
+        img = qrcode.make(URL_A_CODIFICAR)
 
-* **Funcionamiento:** Utiliza la librería `qrcode` para generar una imagen `.png` a partir de una URL especificada.
-* **Gestión de archivos:** Verifica la existencia de un directorio de salida (`QRs_Generados`) y lo crea automáticamente si no existe antes de guardar la imagen.
-* **Uso:** Simplemente ejecutar el script. Las variables de configuración (`URL_A_CODIFICAR`, `NOMBRE_ARCHIVO`) se pueden modificar directamente en la cabecera del archivo.
-    ```bash
-    python qr_cv_generator.py
-    ```
+        # 3. Guardar el archivo
+        ruta_final = os.path.join(CARPETA_DESTINO, NOMBRE_ARCHIVO)
+        img.save(ruta_final)
+
+        print(f"\n[+] ÉXITO: Código QR guardado en: {ruta_final}")
+        
+    except Exception as e:
+        print(f"[-] ERROR: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    generar_qr()

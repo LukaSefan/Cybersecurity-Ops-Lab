@@ -20,7 +20,7 @@ Documentation of TTPs (Tactics, Techniques, and Procedures) for security audits.
 Deployment and securing of cloud and on-premise servers.
 * **AWS Cloud:** Deployment of EC2 instances for pentesting (Kali Linux) with Security Groups and SSH key management.
 * **HomeLab Server:** Construction of a secure NAS server using **Ubuntu Server**, storage management (MergerFS), and remote access via **Mesh VPN (Tailscale)**.
-* **Blue Team & WAF Evasion:** Research on [Nginx Hardening and Filter Evasion](./Infrastructure-Defense/Nginx-Reverse-Proxy-Research) for critical infrastructure protection.
+* **Blue Team & WAF Evasion:** Research on [Nginx Hardening and Filter Evasion](./Infrastructure-Defense) for critical infrastructure protection.
 
 ### 3. 🤖 AI Security Research
 *Location: `/AI-Security-Lab`*
@@ -28,9 +28,9 @@ Exploration of Generative AI applied to cybersecurity.
 * **Local LLMs:** Implementation of "Uncensored" models (Dolphin/Llama3) locally (Air-gapped) for adversary simulation and offensive script generation without telemetry.
 
 ### 4. 🐍 DevSecOps & Automation
-*Location: `/Python-Automation` & `/DevSecOps-Projects`*
+*Location: `/DevSecOps-Projects/Python-Automation`*
 Development of custom tools and secure software architectures.
-* **Scripting:** Automation tools in **Python** (URL Shorteners, Scrapers).
+* **Scripting:** Automation tools in **Python** (URL Shorteners, **QR Code / CV Generators**, Scrapers).
 * **Secure Architecture:** Design documentation for E-Commerce applications (MVC, .NET, Backend Security).
 
 ---
@@ -62,7 +62,7 @@ Investigación y documentación de Tácticas, Técnicas y Procedimientos (TTPs) 
 Despliegue y aseguramiento de servidores en la nube y entornos locales (On-Premise).
 * **AWS Cloud:** Despliegue de instancias EC2 para pentesting (Kali Linux) con gestión de Security Groups y llaves SSH.
 * **HomeLab Server:** Construcción de un servidor NAS seguro con **Ubuntu Server**, gestión de almacenamiento (MergerFS) y acceso remoto vía **VPN Mesh (Tailscale)**.
-* **Blue Team & WAF Evasion:** Investigación sobre [Hardening de Nginx y Evasión de Filtros](./Infrastructure-Defense/Nginx-Reverse-Proxy-Research) para protección de infraestructura crítica.
+* **Blue Team & WAF Evasion:** Investigación sobre [Hardening de Nginx y Evasión de Filtros](./Infrastructure-Defense) para protección de infraestructura crítica.
 
 ### 3. 🤖 AI Security Research
 *Ubicación: `/AI-Security-Lab`*
@@ -70,9 +70,9 @@ Exploración de Inteligencia Artificial Generativa aplicada a la ciberseguridad.
 * **Local LLMs:** Implementación de modelos "Uncensored" (Dolphin/Llama3) en local (Air-gapped) para simulación de adversarios y generación de scripts ofensivos sin telemetría.
 
 ### 4. 🐍 DevSecOps & Automatización
-*Ubicación: `/Python-Automation` & `/DevSecOps-Projects`*
+*Ubicación: `/DevSecOps-Projects/Python-Automation`*
 Desarrollo de herramientas propias y arquitecturas de software seguro.
-* **Scripting:** Herramientas de automatización en **Python** (Acortadores de URL, Scrapers).
+* **Scripting:** Herramientas de automatización en **Python** (Acortadores de URL, **Generador de Códigos QR / CV**, Scrapers).
 * **Arquitectura Segura:** Documentación de diseño para aplicaciones E-Commerce (MVC, .NET, Seguridad en Backend).
 
 ---

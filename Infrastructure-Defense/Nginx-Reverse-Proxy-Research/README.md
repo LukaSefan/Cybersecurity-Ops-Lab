@@ -8,7 +8,7 @@ Este documento detalla la configuración de un servidor de phishing de alta evas
 
 ## 🏗️ Arquitectura de la Infraestructura
 
-El siguiente diagrama ilustra cómo Nginx actúa como un "Cerebro Global" (Reverse Proxy), desviando a los bots hacia sitios seguros y enrutando a las víctimas hacia el payload malicioso dependiendo del dominio que visiten.
+El siguiente diagrama ilustra cómo Nginx actúa como un "Cerebro Global" (Reverse Proxy), desviando a los bots hacia sitios seguros y enrutando a las víctimas hacia el payload malicioso únicamente si acceden a través de rutas ofuscadas y validaciones de identidad.
 
 ```mermaid
 graph TD
@@ -20,26 +20,29 @@ graph TD
     C -- NO --> E{¿Qué Dominio Solicitó?}
     
     E -- dominio-reportes.com --> F{¿Ruta Específica?}
-    E -- dominio-pagos.com --> G{¿Ruta Específica?}
+    E -- dominio-servicios.com --> G{¿Ruta Específica?}
     
     F -- Raíz (/) --> H[Sitio Legítimo: Informe de Seguridad]
-    F -- /reporte-personalizado --> I[Reverse Proxy: 127.0.0.1:8080]
+    F -- /s/ (Ruta Obscura) --> I[Reverse Proxy: 127.0.0.1:8080]
+    F -- Rutas Aleatorias --> J[Error 404: Evasión de Scanners]
     
-    G -- Raíz (/) --> J[Sitio Legítimo: Pasarela de Pagos]
-    G -- /validar-pago --> I
+    G -- Raíz (/) --> K[Sitio Legítimo: Portal IT Services]
+    G -- /s/ (Ruta Obscura) --> I
+    G -- Rutas Aleatorias --> J
     
-    I --> K((Gophish C2 Phish Server))
+    I --> L((Gophish C2 Phish Server))
     
     subgraph "Administración Segura (Zero Trust)"
-    L[Operador Red Team] -.->|Túnel SSH| M(Puerto 3333 Local)
-    M -.-> K
+    M[Operador Red Team] -.->|Túnel SSH| N(Puerto 3333 Local)
+    N -.-> L
     end
 ```
 
 ---
 
 ## 1. Preparación y Limpieza del VPS (Ubuntu/Kali)
-El servidor inicialmente tenía Apache2 preinstalado, lo cual causaba un conflicto con Nginx por el puerto 80.
+
+El servidor inicialmente tenía Apache2 preinstalado, lo cual causaba un conflicto con Nginx por el puerto 80. Se procedió a su desactivación y remoción para el control total del tráfico.
 
 ```bash
 # 1. Detener y deshabilitar Apache2 para liberar el puerto 80
@@ -52,142 +55,133 @@ sudo apt install nginx certbot python3-certbot-nginx tmux ufw -y
 ```
 
 ## 2. Configuración de la "Cara Pública" (Aging Multidominio)
-Para evitar que los dominios sean marcados rápidamente como maliciosos, servimos contenido legítimo inofensivo en la raíz (`/`) de cada uno.
+
+Para evitar que los dominios sean marcados rápidamente como maliciosos, servimos contenido legítimo inofensivo en la raíz (`/`) de cada uno para generar reputación ante analistas.
 
 ```bash
-# Dominio 1: Portal de Reportes Simulado
+# Dominio 1: Portal de Reportes
 sudo mkdir -p /var/www/reportes/html
 sudo chown -R $USER:$USER /var/www/reportes/html
 
-# Dominio 2: Portal de Pagos Simulado
-sudo mkdir -p /var/www/pagos/html
-sudo chown -R $USER:$USER /var/www/pagos/html
+# Dominio 2: Central de Servicios
+sudo mkdir -p /var/www/servicios/html
+sudo chown -R $USER:$USER /var/www/servicios/html
 ```
-> **Nota:** Se debe crear un `index.html` inofensivo en cada ruta para generar confianza a los analistas y escáneres que visiten el dominio principal.
+> **Nota:** Se utiliza un `index.html` profesional en cada ruta para generar confianza a los auditores y escáneres manuales que visiten el dominio principal.
 
 ## 3. El Cerebro Global: Configuración del Filtro Antibots
-Para evitar duplicidad de código y proteger todos los dominios automáticamente, se establece un bloque `map` en el archivo de configuración central de Nginx.
 
-**Comando:** `sudo nano /etc/nginx/nginx.conf`
-*(Añadir dentro del bloque `http { ... }`)*
+Para evitar duplicidad de código y proteger todos los dominios automáticamente, se establece un bloque `map` global en el archivo de configuración central de Nginx.
+
+**Archivo:** `/etc/nginx/nginx.conf` *(Añadir dentro del bloque `http { ... }`)*
 
 ```nginx
 # FILTRO ANTIBOTS GLOBAL (Cloaking)
 map $http_user_agent $es_sospechoso {
     default 0;
+    # Bots de buscadores y scanners automáticos
     ~*(googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot) 1;
+    # Empresas de Ciberseguridad y Sandboxes
     ~*(virustotal|zscaler|paloalto|fireeye|crowdstrike|fortinet) 1;
+    # Herramientas de Auditoría / Pentesting
     ~*(nikto|nmap|sqlmap|wpscan|python|go-http-client) 1;
 }
 ```
 
 ## 4. Configuración de Sitios (Server Blocks)
-Cada dominio tiene su propio archivo en `sites-available` para mantener la modularidad.
 
-### 4.1. Configuración: dominio-reportes.com
-**Ruta:** `/etc/nginx/sites-available/dominio-reportes.com`
+Cada dominio utiliza una "Ruta Obscura" (`/s/`) para canalizar el tráfico hacia el backend de Gophish, mientras que la raíz y otras rutas devuelven contenido legítimo o errores 404.
+
+### 4.1. Configuración: dominio-servicios.com
+**Ruta:** `/etc/nginx/sites-available/dominio-servicios.com`
 
 ```nginx
 server {
     listen 80;
-    server_name dominio-reportes.com [www.dominio-reportes.com](https://www.dominio-reportes.com);
-    if ($es_sospechoso) { return 301 [https://es.wikipedia.org/wiki/Seguridad_inform%C3%A1tica](https://es.wikipedia.org/wiki/Seguridad_inform%C3%A1tica); }
+    server_name dominio-servicios.com [www.dominio-servicios.com](https://www.dominio-servicios.com);
+    if ($es_sospechoso) { return 301 [https://es.wikipedia.org/wiki/Servicios_de_red](https://es.wikipedia.org/wiki/Servicios_de_red); }
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl;
-    server_name dominio-reportes.com [www.dominio-reportes.com](https://www.dominio-reportes.com);
-    if ($es_sospechoso) { return 301 [https://es.wikipedia.org/wiki/Seguridad_inform%C3%A1tica](https://es.wikipedia.org/wiki/Seguridad_inform%C3%A1tica); }
+    server_name dominio-servicios.com [www.dominio-servicios.com](https://www.dominio-servicios.com);
     
-    location / { root /var/www/reportes/html; index index.html; }
+    # Certificados SSL (Let's Encrypt)
+    ssl_certificate /etc/letsencrypt/live/[dominio-servicios.com/fullchain.pem](https://dominio-servicios.com/fullchain.pem);
+    ssl_certificate_key /etc/letsencrypt/live/[dominio-servicios.com/privkey.pem](https://dominio-servicios.com/privkey.pem);
+
+    # Capa de Cloaking
+    if ($es_sospechoso) { return 301 [https://es.wikipedia.org/wiki/Servicios_de_red](https://es.wikipedia.org/wiki/Servicios_de_red); }
     
-    location /reporte-personalizado {
-        proxy_pass [http://127.0.0.1:8080](http://127.0.0.1:8080);
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    # Capa B: Cara Pública (Raíz)
+    location / { 
+        root /var/www/servicios/html; 
+        index index.html; 
+        try_files $uri $uri/ =404; # Evita adivinación de rutas
     }
-}
-```
-
-### 4.2. Configuración: dominio-pagos.com
-**Ruta:** `/etc/nginx/sites-available/dominio-pagos.com`
-
-```nginx
-server {
-    listen 80;
-    server_name dominio-pagos.com [www.dominio-pagos.com](https://www.dominio-pagos.com);
-    if ($es_sospechoso) { return 301 [https://es.wikipedia.org/wiki/Pasarela_de_pago](https://es.wikipedia.org/wiki/Pasarela_de_pago); }
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    server_name dominio-pagos.com [www.dominio-pagos.com](https://www.dominio-pagos.com);
-    if ($es_sospechoso) { return 301 [https://es.wikipedia.org/wiki/Pasarela_de_pago](https://es.wikipedia.org/wiki/Pasarela_de_pago); }
     
-    location / { root /var/www/pagos/html; index index.html; }
-    
-    location /validar-pago {
+    # Capa C: La "Puerta Trasera" (Proxy Inverso)
+    location /s/ {
         proxy_pass [http://127.0.0.1:8080](http://127.0.0.1:8080);
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect off;
     }
 }
 ```
 
 ## 5. Activación, SSL y Firewall
-Pasos críticos para que el servidor sea "visible" y seguro para la administración.
+
+Procedimientos críticos para la puesta en marcha segura y el endurecimiento (hardening) de la red.
 
 ```bash
-# 1. Eliminar el sitio default genérico para evitar fugas de información
+# 1. Eliminar el sitio default para evitar fugas de información
 sudo rm /etc/nginx/sites-enabled/default
 
-# 2. Activar los nuevos dominios (Enlaces simbólicos)
+# 2. Activar los dominios operativos (Enlaces simbólicos)
 sudo ln -s /etc/nginx/sites-available/dominio-reportes.com /etc/nginx/sites-enabled/
-sudo ln -s /etc/nginx/sites-available/dominio-pagos.com /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/dominio-servicios.com /etc/nginx/sites-enabled/
 
-# 3. Validar sintaxis y reiniciar el servicio
+# 3. Validar sintaxis y reiniciar Nginx
 sudo nginx -t && sudo systemctl restart nginx
 
-# 4. Obtener SSL para ambos dominios (Certbot Automático)
-sudo certbot --nginx -d dominio-reportes.com -d [www.dominio-reportes.com](https://www.dominio-reportes.com)
-sudo certbot --nginx -d dominio-pagos.com -d [www.dominio-pagos.com](https://www.dominio-pagos.com)
+# 4. Obtención de SSL (Certbot Automático)
+sudo certbot --nginx -d dominio-servicios.com -d [www.dominio-servicios.com](https://www.dominio-servicios.com)
 
-# 5. Configurar Firewall UFW (Hardening de red)
+# 5. Configurar Firewall UFW (Hardening)
 sudo ufw allow 'Nginx Full' # Puertos 80 y 443
-sudo ufw allow 22           # SSH
-sudo ufw allow 3333         # Gophish Admin
+sudo ufw allow 22           # SSH Management
 sudo ufw enable
 ```
 
 ## 6. Gophish: Backend y Persistencia
-Se ajustó el archivo `config.json` de Gophish para que el tráfico de Nginx llegue correctamente al puerto `8080` de forma local.
+
+Se configuró Gophish para escuchar en el puerto `8080` de forma local (`127.0.0.1`), forzando a que todo el tráfico pase obligatoriamente por el filtro de Nginx.
 
 ```bash
-# Limpiar procesos antiguos en el puerto 3333 antes de empezar
-sudo fuser -k 3333/tcp
-
 # Iniciar Gophish con persistencia usando tmux
 tmux new -s gophish_session
 cd ~/gophish && ./gophish
 
-# Para salir de tmux sin apagar el proceso: Presionar Ctrl+B, soltar, y presionar D
+# Salir de tmux (Detach): Ctrl+B, soltar, presionar D
 ```
-* **Túnel SSH (Powershell Windows):** `ssh -L 3333:127.0.0.1:3333 kali@<IP_DEL_VPS>`
+
+* **Túnel SSH:** `ssh -L 3333:127.0.0.1:3333 kali@<IP_DEL_VPS>`
 * **Acceso Admin Local:** `https://localhost:3333`
 
 ## 7. El Cebo: Código Camaleónico (Pixel Perfect)
-Este código implementa fragmentación de texto y construcción dinámica en RAM para engañar a los scanners de seguridad.
 
-* **Ghost Root:** El HTML inicial está vacío; la IA de seguridad perimetral no ve el código fuente del ataque.
-* **Activación Humana:** El formulario malicioso solo se construye al detectar eventos físicos de hardware (`mousemove` o `touchstart`).
-* **Fragmentación:** Se rompen cadenas de texto clave (ej. `"Banca por " + "Internet"`) para evitar coincidencias con firmas estáticas de motores antivirus.
+Implementación de técnicas avanzadas en el HTML de las Landing Pages:
+
+* **Ghost Root:** El DOM inicial está vacío para engañar a los crawlers que no renderizan JS.
+* **Activación por Humanidad:** El formulario solo se construye en memoria RAM al detectar eventos físicos como `mousemove` o `touchstart`.
+* **Fragmentación de Cadenas:** Uso de fragmentos de texto (ej. `"Cred" + "it " + "Ca" + "rd"`) para evitar firmas estáticas en sistemas de seguridad perimetral.
 
 ## 8. Dudas Resueltas (El Saber del Pentester)
 
-* **¿Por qué sigue activa la web legal?** Porque Nginx sirve el informe legal/pasarela inofensiva en la ruta principal (`/`). Gophish solo toma el control en sub-rutas específicas (como `/validar-pago`) si llevan el parámetro de campaña (`?rid=`) correcto.
-* **¿Por qué borrar el archivo `default` de Nginx?** Para evitar que peticiones directas por IP o HTTP lleguen a la carpeta raíz de Apache/Nginx (`/var/www/html`). Esto mantiene la limpieza del servidor y oculta la infraestructura a escáneres masivos de Shodan.
-* **¿Cómo se evita el conflicto de puertos?** Nginx centraliza todo el tráfico web (80/443) y lo enruta internamente (Reverse Proxy) al puerto `8080` de Gophish basándose estrictamente en el nombre del dominio (Host header) solicitado y la URI.
+* **¿Por qué el 502 Bad Gateway?** Indica que el proxy (Nginx) está bien configurado pero el backend (Gophish) está apagado. Es la señal de que el túnel funciona.
+* **¿Por qué rutas obscuras (`/s/`)?** Para evitar que scanners masivos descubran el phishing probando rutas comunes como `/login` o `/portal`. Solo el usuario con el enlace/QR correcto llega al cebo.
+* **¿Cómo se evita el conflicto de puertos?** Nginx actúa como orquestador, recibiendo todo por el 80/443 y distribuyéndolo internamente al puerto `8080` de Gophish basándose en el dominio solicitado.

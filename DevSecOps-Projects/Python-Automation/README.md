@@ -1,18 +1,17 @@
 ## Herramientas de Automatización en Python
 
-Este directorio contiene scripts desarrollados en Python para automatizar tareas operativas y de evasión en simulaciones de seguridad.
+Este directorio contiene scripts desarrollados en Python para automatizar tareas operativas y utilidades de uso diario.
 
-### 1. DOM Smuggler v2 (`dom_smuggler_v2.py`)
-Herramienta diseñada para simulaciones de *Red Teaming* y auditorías de seguridad (Phishing/Ingeniería Social). Utiliza técnicas de **HTML Smuggling** para evadir sistemas de detección de intrusos (IDS) y sandboxes de correo.
+### 1. Acortador de URLs Múltiple (`URL-Shortener-Tool.py`)
+Script de automatización para acortar enlaces de manera rápida utilizando las APIs públicas de TinyURL e Is.gd. 
 
-* **Funcionamiento:** Toma una plantilla HTML de entrada, fuerza los métodos POST para la captura de credenciales y ofusca el código fuente dividiéndolo en fragmentos codificados en Base64.
-* **Evasión (Anti-Sandbox):** El payload decodifica y reconstruye el DOM del navegador (renderizando la página real) únicamente tras detectar interacción humana (`mousemove` o `touchstart`), evadiendo así los análisis automatizados que no interactúan con la página.
+* **Funcionamiento:** Solicita al usuario una URL larga por consola y realiza peticiones HTTP (`GET`) a los endpoints de los acortadores. Maneja tiempos de espera (timeouts), errores de conexión y valida los códigos de estado de respuesta.
 * **Uso:** ```bash
-    python dom_smuggler_v2.py <plantilla_original.html> <payload_ofuscado.html>
+    python URL-Shortener-Tool.py
     ```
 
 ### 2. Generador de QR para CV (`qr_cv_generator.py`)
-Script utilitario para generar de forma automatizada códigos QR apuntando a recursos web (por defecto, el portafolio personal).
+Script utilitario para generar de forma automatizada códigos QR apuntando a recursos web (por defecto, el portafolio o CV personal).
 
 * **Funcionamiento:** Utiliza la librería `qrcode` para generar una imagen `.png` a partir de una URL especificada.
 * **Gestión de archivos:** Verifica la existencia de un directorio de salida (`QRs_Generados`) y lo crea automáticamente si no existe antes de guardar la imagen.

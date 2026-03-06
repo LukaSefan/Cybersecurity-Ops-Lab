@@ -32,3 +32,12 @@ Script utilitario orientado a Red Teaming diseñado para clonar sitios web objet
   ```bash
   python html_template_cloner.py
   ```
+### 4. Generador de Payloads HTML Smuggling (`dom_smuggler.py`)
+
+Herramienta ofensiva diseñada para tomar una plantilla estática en HTML (como las generadas por `html_template_cloner.py`) y ofuscarla para evadir pasarelas de seguridad de correo (SEG) y sandboxes.
+
+* **Funcionamiento:** Convierte el archivo HTML original en base64, lo divide en fragmentos pequeños (chunking para evadir firmas estáticas) y lo inyecta dentro de un nuevo archivo HTML "señuelo".
+* **OPSEC / Evasión:** El código malicioso (o formulario de captura) NO existe en el código fuente. Se utiliza JavaScript (`document.write`) para renderizar el DOM completo dinámicamente **únicamente** cuando se detecta interacción humana (movimiento del mouse o toque en pantalla), lo cual burla a los escáneres automáticos. Además, normaliza automáticamente las etiquetas `<form>` para ser compatibles con Gophish.
+* **Uso:** Requiere pasar por consola el archivo de entrada y el de salida deseado.
+  ```bash
+  python dom_smuggler.py template_clonado.html payload_ofuscado.html

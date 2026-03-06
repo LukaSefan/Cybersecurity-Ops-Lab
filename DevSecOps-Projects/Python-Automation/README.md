@@ -8,7 +8,7 @@ Script de automatización para acortar enlaces de manera rápida utilizando las 
 * **Funcionamiento:** Solicita al usuario una URL larga por consola y realiza peticiones HTTP (`GET`) a los endpoints de los acortadores. Maneja tiempos de espera (timeouts), errores de conexión y valida los códigos de estado de respuesta.
 * **Uso:** ```bash
     python URL-Shortener-Tool.py
-    ```
+    
 
 ### 2. Generador de QR para CV (`qr_cv_generator.py`)
 Script utilitario para generar de forma automatizada códigos QR apuntando a recursos web (por defecto, el portafolio o CV personal).
